@@ -1,0 +1,124 @@
+* PURPOSE:
+
+To get your Linux kernel development environment working; to make small
+changes to the kernel and test them out; to learn about system calls.
+
+* BACKGROUND:
+
+Encrypting files is very useful and important nowadays, but many OSs do not
+support this feature natively (yet).  Your task is to create a new system
+call that can take an input file, encrypt or decrypt it, and then produce an
+output file.
+
+Note that while we give you more details below, it is up to you to inspect
+the kernel sources to find out similar helpful examples of code; those will
+provide you with even greater details than what we provide here.
+
+The expected amount of written code for this assignment would be 500-700
+lines of kernel code, and another 200-300 lines of user-level code.  Note,
+however, that a lot of time may be spent reading existing sources and
+debugging the code you write.
+
+* TASK:
+
+Create a Linux kernel module (in vanilla 4.0.y Linux that's in your HW1
+GIT repository) that, when loaded into Linux, will support a new system call
+called
+
+	sys_xcrypt(infile, outfile, keybuf, keylen, flags)
+
+where "infile" is the name of an input file to encrypt or decrypt, "outfile"
+is the output file, "keybuf" is a buffer holding the cipher key, "keylen" is
+the length of that buffer, and "flags" determine if you're encrypting or
+decrypting.
+
+If the low (LSB) bit of flags is 1, you should encrypt the infile.  If the
+LSB is 0, you should decrypt the infile.
+
+An unencrypted (cleartext) file is just a sequence of arbitrary bytes.  An
+encrypted (ciphertext) file has two sections.  The first section is a fixed
+length "preamble" and contains some information to validate the decryption
+key (e.g., a secure hash/checksum of the user-level pass-phrase).  This first
+section may include other information as you see fit (e.g., original file
+size, and stuff for extra-credit).  The second section is just the input
+file data, encrypted as per the cipher block size, cipher key, etc.
+
+The most important thing system calls do first is ensure the validity of the
+input they are given.  You must check for ALL possible bad conditions that
+could occur as the result of bad inputs to the system call.  In that case,
+the system call should return the proper errno value (EINVAL, EPERM, EACCES,
+etc.)  Consult the system errno table and pick the right error numbers for
+different conditions.
+
+The kinds of errors that could occur early during the system call's
+execution are as follows (this is a non-exhaustive list):
+
+- missing arguments passed
+- null arguments
+- pointers to bad addresses
+- len and buf don't match
+- invalid flags
+- input file cannot be opened or read
+- output file cannot be opened or written
+- input or output files are not regular, or they point to the same file
+- trying to decrypt a file w/ the wrong key (what errno should you return?)
+- ANYTHING else you can think of (the more error checking you do, the better)
+
+After checking for these errors, you should open the input and output files
+and begin copying data between the two, encrypting or decrypting the data
+before it is written.  Your code must be efficient.  Therefore, do not waste
+extra kernel memory (dynamic or stack) for the system call.  Make sure
+you're not leaking any memory.  On the other hand, for efficiency, you
+should copy the data in chunks that are native to the system this code is
+compiled on, the system page size (PAGE_CACHE_SIZE or PAGE_SIZE).  Hint:
+allocate one page as temporary buffer.
+
+Note that the last page you write could be partially filled and that your
+code should handle zero length files as well.  Also note that ciphers have a
+native block size (e.g., 64 bit) and your file may have to be padded to the
+cipher block size.  Lastly, certain ciphers/modes don't care about blocking
+sizes so they won't need padding.
+
+The output file should be created with the user/group ownership of the
+running process, and its protection mode should NOT be less than the input
+file.
+
+Both the input and output files may be specified using relative or absolute
+pathnames.  Do not assume that the files are always in the current working
+directory.
+
+If no error occurred, sys_xcrypt() should return 0 to the calling process.
+If an error occurred, it should return -1 and ensure that errno is set for
+the calling process.  Choose your errno's appropriately.
+
+If an error occurred in trying to write some of the output file, the system
+call should NOT produce a partial output file.  Instead, remove any
+partially-written output file and return the appropriate error code.
+
+Write a C program called "xcipher" that will call your syscall.  The program
+should have no output upon success and use perror() to print out information
+about what errors occurred.  The program should take three arguments:
+
+- flag: -e to encrypt; -d to decrypt
+- flag: -c ARG to specify the type of cipher (as a string name)
+  [Note: this flag is mainly for the extra credit part]
+- flag: -p ARG to specify the encryption/decryption key
+- flag: -h to provide a helpful usage message
+- input file name
+- output file name
+
+You can process options using getopt(3).  (Note that specifying the
+password on the command line is highly insecure, but it'd make grading
+easier.  In reality, one would use getpass(3) to input a password.)  You
+should be able to execute the following command:
+
+	./xcipher -p "this is my password" -e infile outfile
+
+User-level passwords should be at least 6 characters long.  Nevertheless, you
+should not just pass the password into the kernel as is: it is too short.
+You need to ensure that you pass a correctly sized encryption key into the
+kernel.  You should remove any newline character ('\n'), and then convert
+the human readable password into a good length key.  Use a cryptographic
+checksum algorithm such as MD5(3) or SHA1(3) to generate a good key to pass
+to the kernel.  An even better way would be to use a PKCS#5 library to
+generate secure hashes (check "man -k pkcs" for more info).

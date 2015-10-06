@@ -1,0 +1,166 @@
+NAME : BHARATH KUMAR REDDY VANGOOR
+ID : 110168461
+HOME WORK1 :
+
+Submission contains following files:
+
+1. install_module.sh
+2. Makefile
+3. README
+4. sys_xcrypt.c
+5. xCipher.c
+6. kernel.config
+
+install_module.sh :
+	Contains the commands to insert the new sys_xcrypt.ko module to the linux kernel and remove the previous one if exists from the linux kernel.
+
+Makefile :
+	Contains the commands to run(compile) the userlevel C code and to run(compile) the syscall and generate module out of it.
+
+README :
+	Contains details about the implementation and algorithm(steps) followed to achieve the results, details about how to run the program.
+
+kernel.config :
+	The file contains the various options that I set to boot the kernel.
+
+xCipher.c :
+	File containg the user level code.
+
+sys_xcrypt.c :
+	File containing the kernel code for the system call.
+
+Details for Running :
+
+1. Run make clean to remove the previous built modules and executables. Command to run make clean is "make clean" (under the directory containg the above files).
+
+2. Run make to build the new executables and kernel modules. Comamnd to run make is "make"
+
+3. If make did not generate any warnings/errors then the modules, executables generated successfully.
+
+4. After this we need to insert the kernel module that we generated form above step to the linux kernel using install_module.sh script, command to run the script is "sh install_module.sh" but this needs to be run as ROOT user otherwise the script fails.
+
+5. After inserting the module, we can invoke the functaionality of system call using the user-level written program.
+
+Command to run the programs :
+
+./xCipher -p "passwordKey" -e|-d <inputfile> <outputfile>
+
+where,
+'-p' is mandatory argument to provide passwordkey from user,
+"passwordKey" is the passphrase passed down to kernel, this should be atleast 6 characters long,
+'-e' is the encryption flag,
+'-d' is the decryption flag,
+<inputfile>  is the input file to either encrypt or decrypt,
+<outputfile> is the output file to write either encrypted or decrypted data.
+'h' to print the Usage.
+If any of the above arguments are passed wrongly, the user program will throw an error and exit.
+
+Examples.,
+
+(help option)
+[student@vl47 hw1]$ ./xCipher h
+Usage: xCipher -p "passwordKey" -e|-d <inputfile> <outputfile>
+
+(wrongly invoked)
+[student@vl47 hw1]$ ./xCipher 
+Usage: xCipher -p "passwordKey" -e|-d <inputfile> <outputfile>
+
+[student@vl47 hw1]$ ./xCipher -b
+./xCipher: invalid option -- b
+Unknown option `-b'.
+Usage: xCipher -p "passwordKey" -e|-d <inputfile> <outputfile>
+
+(correctly invoked and program is successful)
+[student@vl47 hw1]$ ./xCipher -p "ABCDEFG" -e /home/student/input.txt /home/student/output.txt 
+syscall returned 0
+
+The program returns with 0 on success.
+
+(correctly invoked and program fails)
+[student@vl47 hw1]$ ./xCipher -p "ABCDEFG" -e /home/student/ /home/student/output.txt 
+syscall returned -1 (errno=21)
+SYSCALL ERROR : Is a directory
+The program returns with -1 on failure, here the input file is a directory instead of file.
+
+DETAILS ABOUT THE CODE :
+
+1. USER LAND CODE :
+
+i) Parsing the arguments that are passed by the user using the "getopt" function, if any arguments are missing then it will call the print_usage() function and exits.
+ii) Validating the arguments that are passed by checking whether they are NULL or not.
+iii) The passphrase passed should be altleast 6 characters long, if it is not then exit.
+iv) If all the arguments passed are fine, then will create a arguments structure whose structure is as follows:
+	struct myargs {
+            char *inputFile;
+            char *outputFile;
+            char *keyBuf;
+            int flags;
+            int keyLen;
+        };
+v) Using the lengths of arguments passed, will use the malloc function to allocate the respective space and if any of them fails the program exit with -1.
+vi) After successful allocation of memory, the user arguments are copied on to the arguments structure variables respectively. Depending the options provided by user "-e" means the flag is set to 1, where as "-d" means flag is set to 0. 
+vii) The user passed passphrase is converted to MD5 hash using the function MD5() which is provided by openssl library and it generates a 16 bytes key and this is passed to kernel system call.
+viii) If nothing fails in thae above step the arguments structure object is casted to void and passed to the system call.
+ix) system calls return value is captured and if system call returns 0 that means a success otherwise error occured and it is printed to user using perror().
+x) If the program fails in between or after succesfully executed, the space allocated for the objects are freed accordingly using goto statements pointing to the particular code to call the free() functions.
+
+2. KERNEL SPACE CODE (syscall) :
+
+i) The syscall function definition is as follows :
+    long xcrypt(void *arg)
+    it takes a void argument.
+ii) The first check syscall does is to check whether the passed argument is NULL or not, if it is NULL it returns "-EINVAL" which means INVALID Arguments and exit.
+iii) If the argument passed is NOT NULL it will create a exact same structure for arguments in kernel space, and tries to copy the arguments to this object.
+iv) The syscall checks for any NULL arguments passed from the user level code and returns appropriate(-EINVAL).
+v) Syscall copies the user land arguments to the kernel space arguments using follwoing functions :
+    a) copy_from_user((void *)arguments, arg, sizeof(struct myargs)); --> To copy the user level arguments structure object to kernel space arguments structure object.
+    b) strnlen_user(((struct myargs*)arg)->inputFile, 32767); --> To get the length of the input file arguments by passing the user level address.
+    c) strncpy_from_user(arguments->inputFile, ((struct myargs*)arg)->inputFile, inputFileLen); --> Copies the input file string from user level address to the kernel space address.
+vi) After copying user space address to kernel space, will check if any of the arguments are NULL or NOT, if any of them are NULL then the program exits returning appropriate error values.
+vii) While allocating kernel space using kmalloc() if any of the assignments fails then the program exits returning "-ENOMEM".
+viii) After successfully copying the arguments(inputFile, outputFile, keyBuffer, flags, key length) to kernel space, program checks :
+	a) Whether the key size passed from user land matches the size of the key buffer. If it doesn't match the programs exits with -EINVAL
+	b) Whether the flags value is other than 0 or 1. If it finds other than 0 or 1 program exits with -EINVAL.
+ix) After the above checks passes, the program moves on with input file checks which are as follows:
+	a) Check whether file exists or not, if input file doesnot exists, program exits with -ENOENT
+	b) Check whether it is a regular file or not, if it is not a regular file program exits with -EISDIR
+	c) Check whether it has read permissions, otherwise program exits with -EACCES
+x) If checks on input file passes, then program moves on with outputfile checks, which are as follows:
+	a) Check whether output file exists or not, if it doesnot exists the program creates output file with input file permisisons. If creating output file fails the program exits		with appropriate failure.
+	b) Check whether it is a regular file or not, if it is not a regular file program exits with -EISDIR
+	c) Check whether it has write permissions, otherwise program exits with -EACCES 
+	d) If out put file already exists then program creates a temp file with same permisisons as that of output file with tempfile name as {outputFilename+'.tmp'} i.e, suppose ou		-tput filename is "output.txt" then temp file name will be "output.txt.tmp". If creating temp file fails then program exits with appropriate error code.
+	e) And if temp file creation is succesfull, then the output is written on to temp file and later renamed to output file.
+
+xi) The program checks whether the input file and output file points to same file or not by inode numbers, if they both point to same file, then it fails with -EPERM (operation not permitted).
+
+xi) Once the checks are done , we open both files one for reading(inputfile) and one for writing(either outputfile or temp file), and two buffers:
+	a) srcbuffer --> of size PAGE_SIZE(4096 bytes) is initialised for reading from the file
+	b) destbuffer --> of size PAGE_SIZE(4096 bytes) is initialised for writing to the file
+xii) Once the above checks passes, then the program generates MD5 hash of the key buffer passed by the user and it is stored in first 16 bytes of preamble. I'm using 20 bytes of preamble which is written to starting of the file incase of encryption and read starting from strating of the file in case of decryption.
+xiii) Now there are two cases depending on the flag value either encryption or decryption :
+    a) If ENCRYPTION :
+	i) Preamble (20 bytes) containg the MD5 hash generated in kernel plus the next 4 bytes with all 0's {0,0,0,0} used for padding is written to output file.
+	ii) Next, 4096 bytes(in loop) are read from the input file and then sent to encryption function, here I'm using "cbc(aes)" which requires key, srcbuffer, destbuffer, length 		of srcbuffer and the padding value argument.
+	iii) If the srcbuffer is not a multiple of 16 bytes then I'm using following formula to generate the padding value and updating the padding variable to be written to the pre		 amble. Formula : 16 - (len(srbuffer)%16). I'm setting all 0's as my padding.
+	iv) Since the padding value ranges from 0 to 15, so used 4 bytes to represent that and witting from 17 to 20 bytes in preamble.
+    b) If DECRYPTION :
+	i) First 16 bytes of preamble from input file is read and compared against the MD5 hash generated in kernel for the cipher key sent by user, if both keys match we proceed to 		decryption otherwise we fail with -EINVAL.
+	ii) If both keys match we read next 4 bytes containg the padding information and genrate the pad value.
+	iii) next, 4096 bytes(in loop) are read from input file and then sent to decryption function ("cbc(aes)") which requires cipher key, srcbuffer, destbuffer, length of src buffer.
+	iv) The content from destbuffer is written to output file. If the number of bytes read from input file are less than PAGESIZe it means it is the last read and we subtract the pad value from the decrypted data and write to the output file.
+
+xiv) If encryption of decryption is successfull without errors, then we need to close the input, output files and rename the temp file (if any) to the proper output file. Using vfs_unlink(), vfs_rename().
+xv) In between decryption or encryption if anything fails the program exits with out altering the output file, i.e by deleting the temp file that has been written partially.
+
+In my program, if the input file is 0 bytes then I'm writing only preamble to the output file i.e 20bytes.
+
+References :
+
+1. Free electrons to browse the code and check the implemntations.(http://lxr.free-electrons.com/source/)
+2. fs/open.c, fs/read_write.c for reading and writing.
+3. Documentation/crypto/api-intro.txt for crypto api implemntations
+4. Wrapfs implementations for vfs_unlink and vfs_rename (http://lxr.fsl.cs.sunysb.edu/linux/source/fs/wrapfs/inode.c#L231)
+5. fs/ecryptfs/crypto.c for encrypting, decrypting and also MD5 hash generation in kernel.
+6. Professor's hw1.txt file containg the code for reading and writing.
+7. Patch provided by the Professor for initial start of syscall implementation.
