@@ -1,0 +1,178 @@
+NAME : BHARATH KUMAR REDDY VANGOOR
+ID : 110168461
+HOME WORK2 :
+
+Submission contains following folder/files:
+1. hw2-bvangoor/fs/amfs
+	This folder contains the files related to Anti-Malware Filesystem(amfs).
+	a) amfs.h 
+		This is the header file that contain function definitions, variable definitions, structures for amfs.
+	b) file.c 
+		This file contain implementations for file operations like read, write, open , readir.
+	c) inode.c
+		This file contain implementations for file/folder operations like rename, setattr,getattr.
+	d) ioctl.c
+		This file contain implementation for ioctl commands.
+	e) main.c
+		This is the starting point for amfs, contains logic for mounting nd unmounting.
+	f) super.c
+		This file contains implementations on super block.
+	(*Remaining files I didn't change.)
+
+2. amfsctl.c 
+	File containg the user level code to access the ioctl commands for amfs.	
+
+3. install_module.sh
+	Contains the commands to insert the new amfs.ko module to the linux kernel and remove the previous one if exists from the linux kernel, and also unmount previously amfs filesystem any mounted and mounts amfs (default command : "mount -t amfs -o pattdb=/mypatterns.db /home/student/AMFileSystem /mnt/amfs")
+
+4. Makefile :
+        Contains the commands to run(compile) the userlevel C code(amfsctl) and to run(compile) the amfs code and generate module out of it.
+
+5. README :
+        Contains details about the implementation and algorithm(steps) followed to achieve the results, details about how to run the program.
+
+Details for Running :
+
+1. Run make clean to remove the previous built modules and executables. Command to run make clean is "make clean" (under the directory "hw2-bvangoor/fs/amfs").
+
+2. Run make to build the new executables and kernel modules. Comamnd to run make is "make"
+
+3. If make did not generate any warnings/errors then the modules, executables generated successfully.
+
+4. After this we need to insert the kernel module that we generated form above step to the linux kernel using install_module.sh script, command to run the script is "sh install_module.sh" but this needs to be run as ROOT user otherwise the script fails.(This script by default unmount previous amfs monuntpoint if any and mounts new amfs assumimg lower directory at "/home/student/AMFileSystem/", moint point at "/mnt/amfs" and pattern db file at "/mypattern.db" )
+    command to mount  : mount -t amfs -o pattdb=<patterndbfile> <lower directory> <mount point>
+	ex : mount -t amfs -o pattdb=/mypatterns.db /home/student/AMFileSystem /mnt/amfs
+	If any of the arguments are wrongly passed, mount will fail.
+
+5. After inserting the module and mounting, we can invoke the functaionality of ioctl call using the user-level written program.
+
+Command to run the programs :
+
+Usage: ./amfsctl -l|-a|-r| "newpatt" <mountpoint>
+	-l	To List Known Patterns (-l <mountpoint>)
+	-a	To add new pattern (-a "newpattern" <mountpoint>)
+	-r	To remove an old pattern (-r "oldpattern" <mountpoint>)
+'h' to print usage
+If any of the above arguments are passed wrongly, the user program will throw an error and exit.
+
+Examples.,
+
+(help option)
+[root@vl47 amfs]# ./amfsctl -h
+Usage: ./amfsctl -l|-a|-r| "newpatt" <mountpoint>
+	-l	To List Known Patterns (-l <mountpoint>)
+	-a	To add new pattern (-a "newpattern" <mountpoint>)
+	-r	To remove an old pattern (-r "oldpattern" <mountpoint>)
+
+(wrongly invoked)
+[root@vl47 amfs]# ./amfsctl 
+Usage: ./amfsctl -l|-a|-r| "newpatt" <mountpoint>
+	-l	To List Known Patterns (-l <mountpoint>)
+	-a	To add new pattern (-a "newpattern" <mountpoint>)
+	-r	To remove an old pattern (-r "oldpattern" <mountpoint>)
+
+[student@vl47 hw1]$ ./xCipher -b
+[root@vl47 amfs]# ./amfsctl -b
+./amfsctl: invalid option -- b
+Unknown option `-b'.
+Usage: ./amfsctl -l|-a|-r| "newpatt" <mountpoint>
+	-l	To List Known Patterns (-l <mountpoint>)
+	-a	To add new pattern (-a "newpattern" <mountpoint>)
+	-r	To remove an old pattern (-r "oldpattern" <mountpoint>)
+
+(correctly invoked and program is successful)
+[root@vl47 amfs]# ./amfsctl -l /mnt/amfs/
+bad
+testing
+
+[root@vl47 amfs]# ./amfsctl -a "efgh" /mnt/amfs/
+pattern added succesfully
+[root@vl47 amfs]# ./amfsctl -l /mnt/amfs/
+bad
+testing
+efgh
+
+(correctly invoked and program fails)
+ot@vl47 amfs]# ./amfsctl -r "ijkl" /mnt/amfs/
+ioctl returned -1 (errno=61)
+SYSCALL ERROR : No data available
+
+DETAILS ABOUT THE CODE :
+
+1. USER LAND CODE(amfsctl.c) :
+
+a) Parsing the arguments that are passed by the user using the "getopt" function, if any arguments are missing then it will call the print_usage() function and exits.
+b) Validating the arguments that are passed by checking whether they are NULL or not.
+c) When all the checks are passed we will malloc the following structre :
+	struct arguments {
+        	char *buffer;
+ 	        int position;
+        	int repeat;
+	};
+	buffer -> is the user sent argument (pattern to add, or delete)
+	position, repeat are used to know whether the list has been parsed completely or not in case of lising the patterns, initially repaet and position are set to 0 and passed to kerenl. If the list is too long to fit in the user buffer sent (4096 in size) then ioctl list command will set repeat to 1, and position to the list position till now parsed. So the user program will call the icotl again to get the rest of the patterns. This is done untill the list is completely parsed in which kernel set this repeat to 0.
+d) Before calling ioctl we need to open the mountpoint passed by the user and get the file descriptor of moint point ansd pass to the ioctl.
+e) Depending on the arguments passed, the user program will copy the arguments passed to the arguments structure buffer and calls ioctl with 21,22,23 numbers for list, add, delete respectively.
+	In case of list, buffer is empty and position, repeat are 0. The kerenl copies patterns to buffer and sets repeat, position accordingly and pass to user.
+	In case of add, buffer conatains the pattern to add and position, repaet are 0. The kernel adds pattern to list and sets errcode in repeat.
+	In case of delete, buffer conatains the pattern to delete and position, repaet are 0. The kernel deletes pattern to list and sets errcode in repeat, in case if the pattern to be deleted doesn't exists it reaturns "-ENODATA".
+f) In case of any failure in between we are freeing the buffer and arguments structure, closing the file descriptor.
+
+2. KERNEL SPACE CODE(amfs) :
+
+a) Parsing the mount command arguments from the raw_data variable using the parsers from linux/parser.h, if the user doesn't send any pattern file then we fail at this pont and don't mount. From this we get pattern file and device name (lower directory).
+b) After succefully parsing the mount options, we read the pattern file and store the patterns in doubly linked list. In case of any errors in reading pattern file we exist with approprate errors and doesn't mount(also freeing the list if any partially constrcuted).
+	List structure and functions used :
+	struct node {
+    		char *line;
+    		struct node *next;
+    		struct node *prev;
+	};
+	extern struct node* allocate_node(int len); --> Allocate space for the node and len is the pattern length that will be stored in this node.
+	extern void delete_node(struct node *old);  --> free the space allocated for node
+	extern void insert_node(struct node **head, struct node *new); --> insert the new node at the end of the list expectc head of the list and new node as arguments
+	extern int delete_line(struct node **head, char *line); --> delete the node containg the pattern passed, return 0 on success and -ENODATA on if pattern doesn't exists. 
+	extern void delete_entire_list(struct node **head); --> free the space alloted to the enire list, called before unmount.
+c) After succesfull parsing of the pattern file and contsructing the list of patterns, we store the head of the list, pattern file to the super block. Structure of SB is cahnged as follows :
+	struct amfs_sb_info {
+	        struct super_block *lower_sb; 
+        	struct node *pattern_list; --> To point the head of the pattern list
+        	char *path;  --> To point to the path of pattern db file(used in case of addition, deletion of patterns from ioctl).
+	};
+d) IOCTL Calls(ioctl.c) :
+	i) Defined following 3 new ioctls :
+		#define AMFS_IOC_GETPATTERN             _IOR('f', 21, struct arguments) --> To list the patterns
+		#define AMFS_IOC_ADDPATTERN             _IOW('f', 22, struct arguments) --> To add new pettern
+		#define AMFS_IOC_DELPATTERN             _IOW('f', 23, struct arguments) --> To delete pattern
+	ii) Use switch case to call respective ioctl's
+		In case of list pattern, we allocate a new arguments structre and copy the user address to kernel addres using copy_from_user, then we iterate the list(we get from superblock which we get from user passed file descritor) position by the position argument and then copy the patterns into the user passed buffer and checking the remaining size on the buffer, when the pattern size exceeds the remaining buffer size we set the repeat to 1 and copy the position of the list to argment and copies these arguments to user addres by calling put_user.
+		In case of add pattern, we allocate a new arguments structre and copy the user address to kernel addres using copy_from_user, then we call insert_node by passing the head of list(we get from superblock which we get from user passed file descritor) and new node, and also update the patterndb file (which we get form SB).
+		In case of delete pattern, we allocate a new arguments structre and copy the user address to kernel addres using copy_from_user, then we call delete_line by passing the head of list(we get from superblock which we get from user passed file descritor) and pattern(from buffer), and also update the patterndb file (which we get form SB). We are writing the complete list contents to the paterndb.tmp file and unlink the previous file and renaming the tmp file to pattern file.
+
+e) File System Operations(file.c, inode.c) :
+	i) In case of read(amfs_read), Initially checking whether the lower_file has any extend attribute set for name ("user.quarantine") and if it returns 1 then I'll exit there itself by -EACESS, if the attrubute is not set that means it is a good file. Now I'll check the buffer content if it has any bad patterns by parsing the patterns list and using sttstr() function, if atleast one pattern exists then I'm setting the extended attribute for that file with name ("user.quarantine") and value 1 and return -EACESS.
+	ii) In case of write(amfs_write), Initially checking whether the lower_file has any extend attribute set for name ("user.quarantine") and if it returns 1 then I'll exit there itself by -EACESS, if the attrubute is not set that means it is a good file. Now I'll check the buffer content if it has any bad patterns by parsing the patterns list and using sttstr() function, if atleast one pattern exists then I'm setting the extended attribute for that file with name ("user.quarantine") and value 1 and return -EACESS.
+	iii) In case of open(amfs_open), Initially checking whether the lower_file has any extend attribute set for name ("user.quarantine") and if it returns 1 then I'll exit there itself by -ENOENT, if the attrubute is not set that means it is a good file.
+	iv) In case of readdir(amfs_readdir), wrote a new filldir callback function which checks for each entry in the directory whether it is a bad file or not. And if it is a bad file we don't emit the content to the user. Copied the code from ecryptfs_readir and changed the checks. Created new structure which stores the context, caller, lower_directory denttry as follows :
+		struct amfs_getdents_callback {
+		        struct dir_context ctx;  --> To store the callback filldir context
+		        struct dir_context *caller; --> To store the caller context to return back after our checks
+		        struct dentry *lower_dentry;  --> to store the lower directories dentry useful for our lookup.
+		        int val;  --> A value returned back so that we can know in readdir whether it is a bad file or not and we don't cahnge the atime if it is bad file.
+		};
+ 	When iter_dir is called with filldir callback, for evry file present under that directory the filldir is called with file_name (char*), using this information I called another function "lookup_one_len()" which returns the dentry of the lower file, from which I check whether the extended attribute is set or not if it is set then it is a bad file I bypass the dir_emit call.
+	v) Similar checks are added as part of amfs_rename, amfs_setattr, amfs_getattr, amfs_setxattr, amfs_getxattr, amfs_removeattr, amfs_listattr as users should not be able to change any of the attributes for bad files.
+	vi) I didn't change anything in unlink, lookup as bad file should be allowed to remove.
+
+LIMITATIONS :
+1. Since I'm reading pattern file in PAGE_SIZE(4096 bytes), if the patterndb file is large then the pattern at between two consecutive buffers is plit in to two.
+2. If the file is good initially and when a bad read or write is happening then in some cases partial  read or write happens and then it fails, but next time it is in accessible to the users.
+3. Above holds for newly created bad files.
+4. I'm not flusing page cache, because whenever a filessytem operation comes I fail at open,read or write.
+
+REFERENCES :
+1. Free electrons to browse the code and check the implemntations.(http://lxr.free-electrons.com/source/)
+2. Copied entire fs/wrapfs and chnaged it to amfs to obtain base version.
+3. Copied readdir, filldir implementation from ecryptfs_readdir.
+4. ioctl implementation from ext3's ioctl implementation.
+5. Professor's hw1.txt file containg the code for reading and writing to file in kernel.
