@@ -1,0 +1,1 @@
+cmd_crypto/async_tx/async_raid6_recov.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o crypto/async_tx/async_raid6_recov.ko crypto/async_tx/async_raid6_recov.o crypto/async_tx/async_raid6_recov.mod.o

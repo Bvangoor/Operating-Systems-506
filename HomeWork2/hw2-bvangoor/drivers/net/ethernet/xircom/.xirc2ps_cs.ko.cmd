@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/xircom/xirc2ps_cs.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/net/ethernet/xircom/xirc2ps_cs.ko drivers/net/ethernet/xircom/xirc2ps_cs.o drivers/net/ethernet/xircom/xirc2ps_cs.mod.o

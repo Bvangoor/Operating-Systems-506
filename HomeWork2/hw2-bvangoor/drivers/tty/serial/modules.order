@@ -1,0 +1,2 @@
+kernel/drivers/tty/serial/8250/serial_cs.ko
+kernel/drivers/tty/serial/jsm/jsm.ko

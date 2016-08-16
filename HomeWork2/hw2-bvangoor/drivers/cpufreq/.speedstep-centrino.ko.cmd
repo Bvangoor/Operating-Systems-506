@@ -1,0 +1,1 @@
+cmd_drivers/cpufreq/speedstep-centrino.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/cpufreq/speedstep-centrino.ko drivers/cpufreq/speedstep-centrino.o drivers/cpufreq/speedstep-centrino.mod.o

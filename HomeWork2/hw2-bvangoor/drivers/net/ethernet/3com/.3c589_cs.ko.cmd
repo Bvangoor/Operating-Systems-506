@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/3com/3c589_cs.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/net/ethernet/3com/3c589_cs.ko drivers/net/ethernet/3com/3c589_cs.o drivers/net/ethernet/3com/3c589_cs.mod.o

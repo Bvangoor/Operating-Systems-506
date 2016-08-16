@@ -1,0 +1,7 @@
+kernel/drivers/hwmon/hwmon.ko
+kernel/drivers/hwmon/abituguru.ko
+kernel/drivers/hwmon/abituguru3.ko
+kernel/drivers/hwmon/coretemp.ko
+kernel/drivers/hwmon/k8temp.ko
+kernel/drivers/hwmon/k10temp.ko
+kernel/drivers/hwmon/sis5595.ko

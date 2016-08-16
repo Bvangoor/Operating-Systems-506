@@ -1,0 +1,11 @@
+kernel/drivers/watchdog/pcwd_pci.ko
+kernel/drivers/watchdog/wdt_pci.ko
+kernel/drivers/watchdog/alim1535_wdt.ko
+kernel/drivers/watchdog/alim7101_wdt.ko
+kernel/drivers/watchdog/ibmasr.ko
+kernel/drivers/watchdog/i6300esb.ko
+kernel/drivers/watchdog/w83627hf_wdt.ko
+kernel/drivers/watchdog/w83877f_wdt.ko
+kernel/drivers/watchdog/w83977f_wdt.ko
+kernel/drivers/watchdog/machzwd.ko
+kernel/drivers/watchdog/softdog.ko

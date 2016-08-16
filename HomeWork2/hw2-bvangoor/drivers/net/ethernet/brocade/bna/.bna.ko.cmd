@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/brocade/bna/bna.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/net/ethernet/brocade/bna/bna.ko drivers/net/ethernet/brocade/bna/bna.o drivers/net/ethernet/brocade/bna/bna.mod.o

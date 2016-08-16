@@ -1,0 +1,1 @@
+cmd_drivers/scsi/scsi_transport_sas.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/scsi/scsi_transport_sas.ko drivers/scsi/scsi_transport_sas.o drivers/scsi/scsi_transport_sas.mod.o

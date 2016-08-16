@@ -1,0 +1,5 @@
+kernel/lib/crc-ccitt.ko
+kernel/lib/crc-t10dif.ko
+kernel/lib/crc-itu-t.ko
+kernel/lib/zlib_deflate/zlib_deflate.ko
+kernel/lib/raid6/raid6_pq.ko

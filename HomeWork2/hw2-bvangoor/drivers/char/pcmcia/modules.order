@@ -1,0 +1,2 @@
+kernel/drivers/char/pcmcia/cm4000_cs.ko
+kernel/drivers/char/pcmcia/cm4040_cs.ko

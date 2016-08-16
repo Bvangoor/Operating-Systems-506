@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/fujitsu/fmvj18x_cs.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/net/ethernet/fujitsu/fmvj18x_cs.ko drivers/net/ethernet/fujitsu/fmvj18x_cs.o drivers/net/ethernet/fujitsu/fmvj18x_cs.mod.o

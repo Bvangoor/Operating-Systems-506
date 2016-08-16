@@ -1,0 +1,2 @@
+kernel/drivers/scsi/scsi_transport_spi.ko
+kernel/drivers/scsi/scsi_transport_sas.ko

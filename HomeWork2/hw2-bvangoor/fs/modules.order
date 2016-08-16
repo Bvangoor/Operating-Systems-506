@@ -1,0 +1,4 @@
+kernel/fs/fscache/fscache.ko
+kernel/fs/wrapfs/wrapfs.ko
+kernel/fs/amfs/amfs.ko
+kernel/fs/cachefiles/cachefiles.ko

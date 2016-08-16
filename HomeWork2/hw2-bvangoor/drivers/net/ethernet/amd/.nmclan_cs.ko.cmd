@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/amd/nmclan_cs.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/net/ethernet/amd/nmclan_cs.ko drivers/net/ethernet/amd/nmclan_cs.o drivers/net/ethernet/amd/nmclan_cs.mod.o

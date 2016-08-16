@@ -1,0 +1,5 @@
+config AM_FS
+	tristate "Amfs stackable file system (HW2)"
+	help
+	  Amfs is a stackable, anti-malware file system developed
+	  as part of my Home Work 2.

@@ -1,0 +1,1 @@
+cmd_drivers/tty/serial/8250/serial_cs.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/tty/serial/8250/serial_cs.ko drivers/tty/serial/8250/serial_cs.o drivers/tty/serial/8250/serial_cs.mod.o

@@ -1,0 +1,9 @@
+kernel/drivers/char/raw.ko
+kernel/drivers/char/nvram.ko
+kernel/drivers/char/agp/agpgart.ko
+kernel/drivers/char/agp/intel-agp.ko
+kernel/drivers/char/agp/intel-gtt.ko
+kernel/drivers/char/agp/sis-agp.ko
+kernel/drivers/char/agp/via-agp.ko
+kernel/drivers/char/hw_random/rng-core.ko
+kernel/drivers/char/hw_random/geode-rng.ko

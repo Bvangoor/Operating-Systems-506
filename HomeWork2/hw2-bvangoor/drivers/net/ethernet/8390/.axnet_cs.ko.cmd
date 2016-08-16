@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/8390/axnet_cs.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/net/ethernet/8390/axnet_cs.ko drivers/net/ethernet/8390/axnet_cs.o drivers/net/ethernet/8390/axnet_cs.mod.o

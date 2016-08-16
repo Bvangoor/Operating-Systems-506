@@ -1,0 +1,4 @@
+kernel/drivers/char/hw_random/intel-rng.ko
+kernel/drivers/char/hw_random/amd-rng.ko
+kernel/drivers/char/hw_random/via-rng.ko
+kernel/drivers/char/hw_random/tpm-rng.ko

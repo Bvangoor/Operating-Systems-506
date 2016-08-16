@@ -1,0 +1,3 @@
+kernel/drivers/net/ethernet/chelsio/cxgb/cxgb.ko
+kernel/drivers/net/ethernet/chelsio/cxgb3/cxgb3.ko
+kernel/drivers/net/ethernet/chelsio/cxgb4/cxgb4.ko

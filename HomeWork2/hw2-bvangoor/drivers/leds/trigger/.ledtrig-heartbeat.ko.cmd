@@ -1,0 +1,1 @@
+cmd_drivers/leds/trigger/ledtrig-heartbeat.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/leds/trigger/ledtrig-heartbeat.ko drivers/leds/trigger/ledtrig-heartbeat.o drivers/leds/trigger/ledtrig-heartbeat.mod.o

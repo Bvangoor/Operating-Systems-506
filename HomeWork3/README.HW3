@@ -1,0 +1,157 @@
+NAME : BHARATH KUMAR REDDY VANGOOR
+ID : 110168461
+HOME WORK3 :
+
+Submission contains following files:
+
+1. install_module.sh
+2. Makefile
+3. README.HW3
+4. arguments.h 
+5. design.pdf
+6. encryption_decryption.h 
+7. file_operations.h
+8. lists.h
+9. submitjob.c
+10. sys_submitjob.c
+11. kernel.config
+
+install_module.sh :
+        Contains the commands to insert the new sys_submit.ko module to the linux kernel and remove the previous one if exists from the linux kernel.
+
+Makefile :
+        Contains the commands to run(compile) the userlevel C code and to run(compile) the syscall and generate module out of it.
+
+README.HW3 :
+        Contains details about the implementation and algorithm(steps) followed to achieve the results, details about how to run the program.
+
+kernel.config :
+        The file contains the various options that I set to boot the kernel.
+
+submitjob.c :
+        File containg the user level code.
+
+sys_submitjob.c :
+        File containing the kernel code for the system call.
+
+arguments.h :
+	File containing the code, datastructures for user arguments
+
+encryption_decryption.h :
+	File containing the code for encryption and decryption
+
+file_operations.h :
+	File containing the code for reading, writing, checking of files
+
+lists.h :
+	File containg the code for list operations.
+
+design.pdf :
+	File containing details about the design followed for implementation.
+
+Details for Running :
+
+1. Run make clean to remove the previous built modules and executables. Command to run make clean is "make clean" (under the directory containg the above files).
+
+2. Run make to build the new executables and kernel modules. Comamnd to run make is "make"
+
+3. If make did not generate any warnings/errors then the modules, executables generated successfully.
+
+4. After this we need to insert the kernel module that we generated form above step to the linux kernel using install_module.sh script, command to run the script is "sh install_module.sh" but this needs to be run as ROOT user otherwise the script fails.
+
+5. After inserting the module, we can invoke the functaionality of system call using the user-level written program.
+
+Command to run the programs :
+
+Usage:  submitjob -t "operation" -i <inputfile(s)> -o <outputfile> -n "algorithms name" -p "passwordKey" -e <extraflag> -u <unique code> -k <position>
+	-o	To specify the operation to be submited <encryption, decryption, list, remove, reorder>
+	-i	input file
+	-o	output file 
+	-n	algorithm name (ex: AES, MD5)(Suppoted only CBC(AES))
+	-p	password key 
+	-e	extra flags (1 for delete/overwrite inputfile)(Not supported No effect)
+	-u	unique code (used only in case of remove job)
+        -k      position to change (used only in case of reorder job)
+Recomended options : 
+encryption :	submitjob -t "encrypt" -i <inputfile> [-o] <outputfile> -n <algorithm name> -p "passwordkey" [-e]
+decryption :	submitjob -t "decrypt" -i <inputfile> [-o] <outputfile> -n <algorithm name> -p "passwordkey" [-e]
+list the jobs : submitjob -t "list" 
+remove the job : submitjob -t "remove" -u <unique id of job to remove> 
+reorder the job : submitjob -t "reorder" -u <unique id of job to remove> -k <position to change>
+
+(correctly invoked and program is successful)
+[root@vl47 hw3]# ./submitjob -t "encrypt" -i /home/student/hw3/small1.txt -o /home/student/hw3/esmall1.txt -n "AES" -p "abcdefgh"
+Job with unique code : 1 submitted successfuly
+Doing some thing lets say printing million numbers
+Job execution returned : 0
+
+The program returns with 0 on success.
+
+(correctly invoked and program fails)
+[root@vl47 hw3]# ./submitjob -t "encrypt" -i /home/student/hw3 -o /home/student/hw3/esmall1.txt -n "AES" -p "abcdefgh"
+Job failed to submit
+syscall returned -1 (errno=21)
+SYSCALL ERROR : Is a directory
+
+More command examples :
+(listing the jobs)
+[root@vl47 hw3]# ./submitjob -t "list"
+list the jobs
+syscall returned 0
+Process ID	Unique ID	Job Type
+----------------------------------------
+7059		2		encrypt
+7060		3		encrypt
+7061		4		encrypt
+
+(reorder the job with unique id 4 to 2nd position)
+[root@vl47 hw3]# ./submitjob -t "reorder" -u 4 -k 2
+reorder the job with unique id 4 to poistion 2
+Job reordered successfully
+(listing after the above command)
+[root@vl47 hw3]# ./submitjob -t "list"
+list the jobs
+syscall returned 0
+Process ID	Unique ID	Job Type
+----------------------------------------
+7059		2		encrypt
+7061		4		encrypt
+7060		3		encrypt
+
+
+(removing the Job)
+[root@vl47 hw3]# ./submitjob -t "remove" -u 4
+remove job called with unique id 4 
+Job removed successfully
+(listing after the above command)
+[root@vl47 hw3]# ./submitjob -t "list"
+list the jobs
+syscall returned 0
+Process ID	Unique ID	Job Type
+----------------------------------------
+7059		2		encrypt
+7060		3		encrypt
+
+Limitations :
+
+When the process that runs in user space adds job to the work queue, and the user removes the job from queue then the user processes doesn't know that his job is removed so it's 
+keep on polling for the receive msg that it will never receive and keeps on working on some thing else. 
+
+
+In some machines there might be problem with netlink sockets in that case we should create symbolic links to follwoing file :
+
+ln -s /usr/include/asm/types.h  /usr/include/asm-generic/types.h
+ln -s /usr/include/asm/posix_types.h  /usr/include/asm-generic/posix_types.h
+ln -s /usr/include/asm/socket.h /usr/include/asm-generic/socket.h
+ln -s /usr/include/asm/sockios.h /usr/include/asm-generic/sockios.h
+
+References :
+
+1. Free electrons to browse the code and check the implemntations.(http://lxr.free-electrons.com/source/)
+2. fs/open.c, fs/read_write.c for reading and writing.
+3. Documentation/crypto/api-intro.txt for crypto api implemntations
+4. Wrapfs implementations for vfs_unlink and vfs_rename (http://lxr.fsl.cs.sunysb.edu/linux/source/fs/wrapfs/inode.c#L231)
+5. fs/ecryptfs/crypto.c for encrypting, decrypting and also MD5 hash generation in kernel.
+6. Professor's hw1.txt file containg the code for reading and writing.
+7. Patch provided by the Professor for initial start of syscall implementation.
+8. Net link code : http://stackoverflow.com/questions/3299386/how-to-use-netlink-socket-to-communicate-with-a-kernel-module

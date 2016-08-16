@@ -1,0 +1,17 @@
+./submitjob -t "encrypt" -i /home/student/hw3/big1.txt -o /home/student/hw3/ebig1.txt -n "AES" -p "abcdef" --> Terminal1
+./submitjob -t "encrypt" -i /home/student/hw3/big2.txt -o /home/student/hw3/ebig2.txt -n "AES" -p "abcdef" --> Terminal2
+./submitjob -t "encrypt" -i /home/student/hw3/small1.txt -o /home/student/hw3/esmall1.txt -n "AES" -p "abcdef" --> Terminal3
+./submitjob -t "encrypt" -i /home/student/hw3/small2.txt -o /home/student/hw3/esmall2.txt -n "AES" -p "abcdef" --> Terminal4
+./submitjob -t "list" --> Terminal5
+./submitjob -t "reorder" -u 4 -k 2 --> Terminal5
+./submitjob -t "remove" -u 4 --> Terminal 5
+
+Failure Scenario :
+
+./submitjob -t "encrypt" -i /home/student/hw3/ -o /home/student/hw3/esmall2.txt -n "AES" -p "abcdef" --> Any Terminal (standalone) (Failure before submiting to queue)
+
+
+./submitjob -t "decrypt" -i /home/student/hw3/ebig1.txt -o /home/student/hw3/dbig1.txt -n "AES" -p "abcdef" --> Terminal1
+./submitjob -t "decrypt" -i /home/student/hw3/ebig2.txt -o /home/student/hw3/dbig2.txt -n "AES" -p "abcdefg" --> Terminal2 (Wrong passwd) (failure after getting added to queue)
+./submitjob -t "encrypt" -i /home/student/hw3/esmall1.txt -o /home/student/hw3/dsmall1.txt -n "AES" -p "abcdef" --> Terminal3
+./submitjob -t "encrypt" -i /home/student/hw3/esmall2.txt -o /home/student/hw3/dsmall2.txt -n "AES" -p "abcdef" --> Terminal 4 (failure because of no such file or directory)

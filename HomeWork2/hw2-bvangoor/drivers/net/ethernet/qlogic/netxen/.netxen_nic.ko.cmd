@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/qlogic/netxen/netxen_nic.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds   -o drivers/net/ethernet/qlogic/netxen/netxen_nic.ko drivers/net/ethernet/qlogic/netxen/netxen_nic.o drivers/net/ethernet/qlogic/netxen/netxen_nic.mod.o

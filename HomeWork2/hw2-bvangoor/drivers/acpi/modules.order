@@ -1,0 +1,6 @@
+kernel/drivers/acpi/ac.ko
+kernel/drivers/acpi/button.ko
+kernel/drivers/acpi/video.ko
+kernel/drivers/acpi/battery.ko
+kernel/drivers/acpi/sbshc.ko
+kernel/drivers/acpi/sbs.ko

@@ -1,0 +1,9 @@
+kernel/drivers/md/linear.ko
+kernel/drivers/md/raid0.ko
+kernel/drivers/md/raid1.ko
+kernel/drivers/md/raid10.ko
+kernel/drivers/md/raid456.ko
+kernel/drivers/md/multipath.ko
+kernel/drivers/md/faulty.ko
+kernel/drivers/md/dm-mod.ko
+kernel/drivers/md/dm-zero.ko
